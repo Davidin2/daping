@@ -146,6 +146,8 @@ def main():
     while True:
         testeo+=1
         if testeo % LOG_CADA == 0:
+            logfile2=open("ultimo.txt", "w")
+            print ("------------------------",datetime.now(),"------------------------", file=logfile2)
             logfile=open("log.txt", "a+") 
             print ("------------------------",datetime.now(),"------------------------", file=logfile)
             fecha_actual=date.today() #Para mandar un correo una vez solo cuando cambiamos de día
@@ -184,6 +186,7 @@ def main():
                 print(rango, len(dic_rangos[rango]),"IPs responden al ping", "T E ES F FS", dic_rangos_contador[rango])
                 if testeo % LOG_CADA == 0: #guardamos log de como vamos
                     print(rango, len(dic_rangos[rango]),"IPs responden al ping", "T E ES F FS", dic_rangos_contador[rango], file=logfile)
+                    print(rango, len(dic_rangos[rango]),"IPs responden al ping", "T E ES F FS", dic_rangos_contador[rango], file=logfile2)      
                     if fecha_inicio.day != fecha_actual.day:
                         print(rango, len(dic_rangos[rango]),"IPs responden al ping", "T E ES F FS", dic_rangos_contador[rango], file=mailfile)           
             else:
@@ -194,6 +197,7 @@ def main():
                 print ("**********ALERTA", rango, "SIN IP", "T E ES F FS", dic_rangos_contador[rango])
                 if testeo % LOG_CADA == 0: #guardamos log de como vamos
                     print ("**********ALERTA", rango, "SIN IP", "T E ES F FS", dic_rangos_contador[rango], file=logfile)
+                    print ("**********ALERTA", rango, "SIN IP", "T E ES F FS", dic_rangos_contador[rango], file=logfile2)
                     if fecha_inicio.day != fecha_actual.day:
                         print ("**********ALERTA", rango, "SIN IP", "T E ES F FS", dic_rangos_contador[rango], file=mailfile)
                 if testeo % BUSCA_IP_CADA == 0: #Testeamos rangos con 0
@@ -209,6 +213,7 @@ def main():
                     envia_correo(texto, texto)
         if testeo % LOG_CADA == 0:
             logfile.close()
+            logfile2.close()
             if fecha_inicio.day != fecha_actual.day:
                 mailfile.close()
                 mailfile=open("mail.txt", "r")
