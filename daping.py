@@ -146,7 +146,7 @@ def main():
     while True:
         testeo+=1
         if testeo % LOG_CADA == 0:
-            logfile2=open("ultimo.txt", "w")
+            logfile2=open("ultimo.log", "w")
             print ("------------------------",datetime.now(),"------------------------", file=logfile2)
             logfile=open("log.txt", "a+") 
             print ("------------------------",datetime.now(),"------------------------", file=logfile)
@@ -214,6 +214,12 @@ def main():
         if testeo % LOG_CADA == 0:
             logfile.close()
             logfile2.close()
+            logfile2=open("ultimo.log", "r")
+            logfile3=open("ultimo.txt", "w")
+            for linea in logfile2:
+                print (linea[:-1], file=logfile3)
+            logfile2.close()
+            logfile3.close()
             if fecha_inicio.day != fecha_actual.day:
                 mailfile.close()
                 mailfile=open("mail.txt", "r")
