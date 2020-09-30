@@ -3,7 +3,6 @@
 
 
 import subprocess
-#import time
 import pickle
 import ipaddress
 from random import randrange
@@ -85,7 +84,7 @@ def busca_ips_en_rango(rango):
     print("---------------Rango", rango, "procesado, ", len(lista_salida), "ips responden a ping")
     #aqui podíamos truncar lista si no queremos tantas ips
     if len(lista_salida) > MAXIMAS_IP_POR_RANGO:
-        lista_salida=lista_salida[0:MAXIMAS_IP_POR_RANGO-1]
+        lista_salida=lista_salida[0:MAXIMAS_IP_POR_RANGO]
     return (lista_salida)
 
 
@@ -119,7 +118,7 @@ def main():
             print(rango, "borrado ")
         else:
             print(rango, "No se puede borrar pq no está")
-
+    #Pendiente imprimir al log el dic y count  
     print ("---------------Entramos en modo control---------------------")
     #print(dic_rangos)
 
@@ -145,17 +144,29 @@ def main():
     
     while True:
         testeo+=1
+        num_ips=0
+        num_rangos=0
+        num_ips_ping=0
+        for rango in dic_rangos.keys():
+            network=ipaddress.ip_network(rango)
+            num_ips+=network.num_addresses  
+            num_rangos+=1
+            num_ips_ping+=len(dic_rangos[rango])
         if testeo % LOG_CADA == 0:
             logfile2=open("ultimo.log", "w")
-            print ("------------------------",datetime.now(),"------------------------", file=logfile2)
+            print ("------------------INICIO",datetime.now(),"------------------------", file=logfile2)
+            print ("Controlando", num_rangos, "rangos y",num_ips,"ips. Hacemos ping a",num_ips_ping,"ips.", file=logfile2)
             logfile=open("log.txt", "a+") 
-            print ("------------------------",datetime.now(),"------------------------", file=logfile)
+            print ("------------------INICIO",datetime.now(),"------------------------", file=logfile)
+            print ("Controlando", num_rangos, "rangos y",num_ips,"ips. Hacemos ping a",num_ips_ping,"ips.", file=logfile)
             fecha_actual=date.today() #Para mandar un correo una vez solo cuando cambiamos de día
             if fecha_inicio.day != fecha_actual.day:
                 mailfile=open("mail.txt", "w") #pendente poner el dia mes y año al nombre fichero
-                print ("------------------------",datetime.now(),"------------------------", file=mailfile)
+                print ("------------------INICIO",datetime.now(),"------------------------", file=mailfile)
+                print ("Controlando", num_rangos, "rangos y",num_ips,"ips. Hacemos ping a",num_ips_ping,"ips.", file=mailfile)
              
         print("------------------------","Testeo numero", testeo, "-----------------------")
+        print ("Controlando", num_rangos, "rangos y",num_ips,"ips. Hacemos ping a",num_ips_ping,"ips.")
         for rango in dic_rangos.keys():     # Por cada rango en el diccionario
             if len(dic_rangos[rango])>0:    # Si tiene al menos una ip que responde
                 if len(dic_rangos[rango])<BUSCAIPS_SI_MENOS: # si tiene menos del limite 
@@ -212,6 +223,8 @@ def main():
                     print (texto)
                     envia_correo(texto, texto)
         if testeo % LOG_CADA == 0:
+            print ("------------------FIN",datetime.now(),"------------------------", file=logfile)
+            print ("------------------FIN",datetime.now(),"------------------------", file=logfile2)
             logfile.close()
             logfile2.close()
             logfile2=open("ultimo.log", "r")
@@ -221,6 +234,7 @@ def main():
             logfile2.close()
             logfile3.close()
             if fecha_inicio.day != fecha_actual.day:
+                print ("------------------FIN",datetime.now(),"------------------------", file=mailfile)
                 mailfile.close()
                 mailfile=open("mail.txt", "r")
                 texto=""
@@ -235,15 +249,11 @@ def main():
             guarda_diccionario(dic_rangos,"dic_rangos.dat")
             guarda_diccionario(dic_rangos_contador,"dic_rangos_cont.dat")
         
-
-        #time.sleep(0)
-
-
-
 if __name__ == '__main__':
     main()
 
-
+#Mejoras a futuro: 
+    #1 proceso hace pings buscando ips mientras otro testea las existentes en paralelo
 
 
 
