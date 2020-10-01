@@ -148,6 +148,8 @@ def main():
         num_rangos=0
         num_ips_ping=0
         for rango in dic_rangos.keys():
+            #si queremos recortar las ips de ping
+            #dic_rangos[rango]=dic_rangos[rango][0:XX]
             network=ipaddress.ip_network(rango)
             num_ips+=network.num_addresses  
             num_rangos+=1
@@ -238,8 +240,11 @@ def main():
                 mailfile.close()
                 mailfile=open("mail.txt", "r")
                 texto=""
+                cont=0
                 for linea_log in mailfile:
-                    texto=texto+linea_log+"\n\r"
+                    texto=texto+linea_log+'\n'+'\r'
+                    cont+=1
+                texto=texto+str(cont)#debug para ver pq no tengo saltos de linea
                 mailfile.close()
                 envia_correo("DAPING: Reporte diario PINGs", texto)
                 fecha_inicio=date.today()
