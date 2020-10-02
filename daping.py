@@ -13,8 +13,7 @@ import smtplib
 def envia_correo(asunto, mensaje):
     remitente = "david.hernandezc@gmail.com"
     destinatario = "david.hernandez@vodafone.com"
-    #asunto = "Detectado rango sin ping"
-    #mensaje = "Detectado rango sin ping"
+    asunto="DAPING: " + asunto
     email = """From: %s
 To: %s
 MIME-Version: 1.0
@@ -149,7 +148,7 @@ def main():
         num_ips_ping=0
         for rango in dic_rangos.keys():
             #si queremos recortar las ips de ping
-            #dic_rangos[rango]=dic_rangos[rango][0:XX]
+            #dic_rangos[rango]=dic_rangos[rango][0:XX] no testeado∫
             network=ipaddress.ip_network(rango)
             num_ips+=network.num_addresses  
             num_rangos+=1
@@ -216,12 +215,12 @@ def main():
                 if testeo % BUSCA_IP_CADA == 0: #Testeamos rangos con 0
                     dic_rangos[rango]=busca_ips_en_rango(rango)
             if dic_rangos_contador[rango][FALLIDOS_SEGUIDOS] == MAIL_SI_FALLO:
-                texto="DAPING: FALLO en rango " + rango + " T E ES F FS " + str(dic_rangos_contador[rango])
+                texto="FALLO en rango " + rango + " T E ES F FS " + str(dic_rangos_contador[rango])
                 print (texto)
                 envia_correo(texto, texto)
             if dic_rangos_contador[rango][EXITOSOS_SEGUIDOS] == MAIL_SI_RECUPERA: 
                 if dic_rangos_contador[rango][EXITOSOS_SEGUIDOS] != dic_rangos_contador[rango][TESTEOS]: # controlamos que no sea al arranque
-                    texto="DAPING: Recuperacion en rango " + rango + " T E ES F FS " + str(dic_rangos_contador[rango])
+                    texto="Recuperacion en rango " + rango + " T E ES F FS " + str(dic_rangos_contador[rango])
                     print (texto)
                     envia_correo(texto, texto)
         if testeo % LOG_CADA == 0:
@@ -240,13 +239,10 @@ def main():
                 mailfile.close()
                 mailfile=open("mail.txt", "r")
                 texto=""
-                cont=0
                 for linea_log in mailfile:
-                    texto=texto+linea_log+'\n'+'\r'
-                    cont+=1
-                texto=texto+str(cont)#debug para ver pq no tengo saltos de linea
+                    texto=texto+linea_log+ "<br>"
                 mailfile.close()
-                envia_correo("DAPING: Reporte diario PINGs", texto)
+                envia_correo("Reporte diario PINGs", texto)
                 fecha_inicio=date.today()
 
         
