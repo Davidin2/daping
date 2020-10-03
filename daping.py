@@ -85,7 +85,7 @@ def carga_diccionario(nombre_fichero):
                     TRUNC_IPS=6 # como minimo debería ser 5 para no cargarnos el diccionario de contadores
                 if len(dic_cargado[rango])>TRUNC_IPS:
                     dic_cargado[rango]=dic_cargado[rango][0:TRUNC_IPS]
-            print(dic_cargado)
+            #print(dic_cargado)
             return dic_cargado
     except (OSError, IOError) as e:
         print ("---------------No hay Diccionario a cargar---------------")
@@ -126,19 +126,29 @@ def carga_config():
     try:
         with open ('daping.ini') as f:  #Falta gestionar si un id no existe en el fichero
             config.read_file(f)
-            LOG_CADA=int(config['default']['LOG_CADA'])
-            BUSCA_IP_CADA=int(config['default']['BUSCA_IP_CADA'])
-            GUARDA_DIC_CADA=int(config['default']['GUARDA_DIC_CADA'])
-            MAIL_SI_FALLO=int(config['default']['MAIL_SI_FALLO'])
-            MAIL_SI_RECUPERA=int(config['default']['MAIL_SI_RECUPERA'])
-            BUSCAIPS_SI_MENOS=int(config['default']['BUSCAIPS_SI_MENOS'])
-            MAXIMAS_IP_POR_RANGO=int(config['default']['MAXIMAS_IP_POR_RANGO'])
-            MAXIMA_RED=int(config['default']['MAXIMA_RED'])
-            TRUNC_IPS=int(config['default']['TRUNC_IPS'])
-            ID=config['default']['ID']
-            MAILS=config['default']['MAILS']
-            print("Configuración cargada")
-            print (MAILS)
+            if 'LOG_CADA' in config['default']:
+                LOG_CADA=int(config['default']['LOG_CADA'])
+            if 'BUSCA_IP_CADA' in config['default']:
+                BUSCA_IP_CADA=int(config['default']['BUSCA_IP_CADA'])
+            if 'GUARDA_DIC_CADA' in config['default']:
+                GUARDA_DIC_CADA=int(config['default']['GUARDA_DIC_CADA'])
+            if 'MAIL_SI_FALLO' in config['default']:
+                MAIL_SI_FALLO=int(config['default']['MAIL_SI_FALLO'])
+            if 'MAIL_SI_RECUPERA' in config['default']:
+                MAIL_SI_RECUPERA=int(config['default']['MAIL_SI_RECUPERA'])
+            if 'BUSCAIPS_SI_MENOS' in config['default']:
+                BUSCAIPS_SI_MENOS=int(config['default']['BUSCAIPS_SI_MENOS'])
+            if 'MAXIMAS_IP_POR_RANGO' in config['default']:
+                MAXIMAS_IP_POR_RANGO=int(config['default']['MAXIMAS_IP_POR_RANGO'])
+            if 'MAXIMA_RED' in config['default']:
+                MAXIMA_RED=int(config['default']['MAXIMA_RED'])
+            if 'TRUNC_IPS' in config['default']:
+                TRUNC_IPS=int(config['default']['TRUNC_IPS'])
+            if 'ID' in config['default']:
+                ID=config['default']['ID']
+            if 'MAILS' in config['default']:
+                MAILS=config['default']['MAILS'].split(sep=',')
+            print("Configuracion cargada")
     except (OSError, IOError) as e:
         print ("No hay fichero configuración")
 
@@ -154,7 +164,7 @@ def print_config():
     config=config + "MAXIMA_RED: " + str(MAXIMA_RED) + "\r\n"
     config=config + "TRUNC_IPS: " + str(TRUNC_IPS) + "\r\n"
     config=config + "ID: " + ID + "\r\n"
-    config=config + "MAILS: " + MAILS + "\r\n"
+    config=config + "MAILS: " + ",".join(MAILS) + "\r\n"
     return (config)
 
 def main():
