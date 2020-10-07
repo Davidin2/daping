@@ -224,10 +224,12 @@ def main():
             num_ips_ping+=len(dic_rangos[rango])
         logfile=open("ultimo.log", "w") 
         print ("------------------Start time",datetime.now(),"------------------------<BR>", file=logfile)
-        print ("Checking", num_rangos, "ranges and",num_ips,"ips. Ping to",num_ips_ping,"""ips.<BR><TABLE BORDER="1">""", file=logfile)
+        print ("Checking", num_rangos, "ranges and",num_ips,"ips. Ping to",num_ips_ping,"""ips.<BR><BR><BR><TABLE BORDER="1">""", file=logfile)
+        print ("<TR><TH>RANGE</TH><TH>IP ALIVE</TH><TH>[Tests OK CONSECUTIVE_OK FAIL CONSECUTIVE_FAIL]</TH><TH>Last 24h</TH></TR>", file=logfile)
         fecha_actual=date.today() #Para mandar un correo una vez solo cuando cambiamos de día
         print("------------------------","Testing number", testeo, "-----------------------")
         print ("Checking", num_rangos, "ranges and",num_ips,"ips. Ping to",num_ips_ping,"ips.")
+        print ("[Tests OK CONSECUTIVE_OK FAIL CONSECUTIVE_FAIL]")
         for rango in dic_rangos.keys():     # Por cada rango en el diccionario
             if len(dic_rangos[rango])>0:    # Si tiene al menos una ip que responde
                 comando= ["fping", "-aq"]
@@ -256,8 +258,8 @@ def main():
                     dic_rangos_contador[rango][FALLIDOS_SEGUIDOS_24]=0
                     dic_rangos_contador[rango][TESTEOS]+=1
                     dic_rangos_contador[rango][TESTEOS_24]+=1
-                    print(rango, len(dic_rangos[rango]),"IPs answer ping.", "[Tests TOTAL_OK CONSECUTIVE_OK FAIL CONSECUTIVE_FAIL]", dic_rangos_contador[rango][0:5],"Last 24h:", dic_rangos_contador[rango][5:10])
-                    print("<TR><TD>", rango, len(dic_rangos[rango]),"IPs answer ping</TD>", "<TD>[Tests TOTAL_OK CONSECUTIVE_OK FAIL CONSECUTIVE_FAIL]", dic_rangos_contador[rango][0:5],"</TD><TD>Last 24h:", dic_rangos_contador[rango][5:10], "</TD></TR>", file=logfile)
+                    print(rango, len(dic_rangos[rango]),"IPs answer ping.", dic_rangos_contador[rango][0:5],"Last 24h:", dic_rangos_contador[rango][5:10])
+                    print("<TR><TD>", rango,"</TD><TD>", len(dic_rangos[rango]),"</TD><TD>", dic_rangos_contador[rango][0:5],"</TD><TD>", dic_rangos_contador[rango][5:10], "</TD></TR>", file=logfile)
                 else:
                     dic_rangos_contador[rango][FALLIDOS]+=1
                     dic_rangos_contador[rango][FALLIDOS_SEGUIDOS]+=1
@@ -267,8 +269,8 @@ def main():
                     dic_rangos_contador[rango][EXITOSOS_SEGUIDOS_24]=0
                     dic_rangos_contador[rango][TESTEOS]+=1
                     dic_rangos_contador[rango][TESTEOS_24]+=1
-                    print ("**********ALERT", rango, "WITHOUT IP.", "[Tests TOTAL_OK CONSECUTIVE_OK FAIL CONSECUTIVE_FAIL]", dic_rangos_contador[rango][0:5],"Last 24h:", dic_rangos_contador[rango][5:10])
-                    print ("<TR><TD>**********ALERT", rango, "WITHOUT IP</TD>", "<TD>[Tests TOTAL_OK CONSECUTIVE_OK FAIL CONSECUTIVE_FAIL]", dic_rangos_contador[rango][0:5],"</TD><TD>Last 24h:", dic_rangos_contador[rango][5:10],"</TD></TR>", file=logfile)
+                    print ("**********ALERT", rango, "WITHOUT IP.", dic_rangos_contador[rango][0:5],"Last 24h:", dic_rangos_contador[rango][5:10])
+                    print ("""<TR bgcolor= "red"><TD>**ALERT**""", rango, "</TD><TD>0</TD><TD>", dic_rangos_contador[rango][0:5],"</TD><TD>", dic_rangos_contador[rango][5:10],"</TD></TR>", file=logfile)
             else:
                 if testeo % BUSCA_IP_CADA == 0: #Testeamos rangos con 0
                     dic_rangos[rango]=busca_ips_en_rango(rango)
@@ -281,8 +283,8 @@ def main():
                     dic_rangos_contador[rango][FALLIDOS_SEGUIDOS_24]+=1
                     dic_rangos_contador[rango][EXITOSOS_SEGUIDOS_24]=0
                     dic_rangos_contador[rango][TESTEOS_24]+=1
-                    print ("**********ALERT", rango, "WITHOUT IP.", "[Tests TOTAL_OK CONSECUTIVE_OK FAIL CONSECUTIVE_FAIL]", dic_rangos_contador[rango][0:5],"Last 24h:", dic_rangos_contador[rango][5:10])
-                    print ("<TR><TD>**********ALERT", rango, "WITHOUT IP</TD>", "<TD>[Tests TOTAL_OK CONSECUTIVE_OK FAIL CONSECUTIVE_FAIL]", dic_rangos_contador[rango][0:5],"</TD><TD>Last 24h:", dic_rangos_contador[rango][5:10],"</TD></TR>", file=logfile)
+                    print ("**********ALERT", rango, "WITHOUT IP.", dic_rangos_contador[rango][0:5],"Last 24h:", dic_rangos_contador[rango][5:10])
+                    print ("""<TR bgcolor= "red"><TD>**ALERT**""", rango, "</TD><TD>0</TD><TD>", dic_rangos_contador[rango][0:5],"</TD><TD>", dic_rangos_contador[rango][5:10],"</TD></TR>", file=logfile)
                 else: #Hemos encontrado despues de buscar
                     dic_rangos_contador[rango][EXITOSOS]+=1
                     dic_rangos_contador[rango][EXITOSOS_SEGUIDOS]+=1
@@ -292,8 +294,8 @@ def main():
                     dic_rangos_contador[rango][FALLIDOS_SEGUIDOS_24]=0
                     dic_rangos_contador[rango][TESTEOS]+=1
                     dic_rangos_contador[rango][TESTEOS_24]+=1
-                    print(rango, len(dic_rangos[rango]),"IPs answer ping.", "[Tests TOTAL_OK CONSECUTIVE_OK FAIL CONSECUTIVE_FAIL]", dic_rangos_contador[rango][0:5],"Last 24h:", dic_rangos_contador[rango][5:10])
-                    print("<TR><TD>", rango, len(dic_rangos[rango]),"IPs answer ping</TD>", "<TD>[Tests TOTAL_OK CONSECUTIVE_OK FAIL CONSECUTIVE_FAIL]", dic_rangos_contador[rango][0:5],"</TD><TD>Last 24h:", dic_rangos_contador[rango][5:10], "</TD></TR>", file=logfile)
+                    print(rango, len(dic_rangos[rango]),"IPs answer ping.", dic_rangos_contador[rango][0:5],"Last 24h:", dic_rangos_contador[rango][5:10])
+                    print("<TR><TD>", rango,"</TD><TD>", len(dic_rangos[rango]),"</TD><TD>", dic_rangos_contador[rango][0:5],"</TD><TD>", dic_rangos_contador[rango][5:10], "</TD></TR>", file=logfile)
             if dic_rangos_contador[rango][FALLIDOS_SEGUIDOS] == MAIL_SI_FALLO:
                 texto="FAIL in range " + rango + ". [Tests TOTAL_OK CONSECUTIVE_OK FAIL CONSECUTIVE_FAIL] " + str(dic_rangos_contador[rango][0:5]) + " Last 24h: "+ str(dic_rangos_contador[rango][5:10])
                 print (texto)
@@ -303,7 +305,7 @@ def main():
                     texto="Recover range " + rango + ". [Tests TOTAL_OK CONSECUTIVE_OK FAIL CONSECUTIVE_FAIL] " + str(dic_rangos_contador[rango][0:5])+" Last 24h: "+ str(dic_rangos_contador[rango][5:10])
                     print (texto)
                     envia_correo(texto, texto)
-        print ("</TABLE>------------------END TIME",datetime.now(),"------------------------<BR>", file=logfile)
+        print ("</TABLE>------------------END TIME",datetime.now(),"------------------------<BR><BR><BR><BR>", file=logfile)
         logfile.close()
         logfile2=open("ultimo.log", "r")
         logfile3=open("ultimo.txt", "w") # lo copiamos a .txt pq el .log al estar abierto siempre no tiene toda la info
