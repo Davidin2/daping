@@ -166,7 +166,7 @@ def print_config():
     config=config + "EMAIL if range fail: " + str(MAIL_SI_FALLO) + "\r\n<BR>"
     config=config + "EMAIL if range recover: " + str(MAIL_SI_RECUPERA) + "\r\n<BR>"
     config=config + "Search IP if less than: " + str(BUSCAIPS_SI_MENOS) + "\r\n<BR>"
-    config=config + "MAX IP to ping in a range: " + str(MAXIMAS_IP_POR_RANGO) + "\r\n<BR>"
+    config=config + "MAX IP to search in a range: " + str(MAXIMAS_IP_POR_RANGO) + "\r\n<BR>"
     config=config + "MAX prefix network to search IP: " + str(MAXIMA_RED) + "\r\n<BR>"
     config=config + "Lmit IPs in range to: " + str(TRUNC_IPS) + "\r\n<BR>"
     config=config + "ID: " + ID + "\r\n<BR>"
@@ -322,11 +322,12 @@ def main():
             envia_correo("Daily Ping Report", texto)
             fecha_inicio=date.today()
             mailfile.close()
-            dic_rangos_contador[rango][FALLIDOS_24]=0
-            dic_rangos_contador[rango][FALLIDOS_SEGUIDOS_24]=0
-            dic_rangos_contador[rango][EXITOSOS_SEGUIDOS_24]=0
-            dic_rangos_contador[rango][EXITOSOS_24]=0
-            dic_rangos_contador[rango][TESTEOS_24]=0
+            for rango in dic_rangos.keys(): #reseteamos contadores diarios tras mandar el mail
+                dic_rangos_contador[rango][FALLIDOS_24]=0
+                dic_rangos_contador[rango][FALLIDOS_SEGUIDOS_24]=0
+                dic_rangos_contador[rango][EXITOSOS_SEGUIDOS_24]=0
+                dic_rangos_contador[rango][EXITOSOS_24]=0
+                dic_rangos_contador[rango][TESTEOS_24]=0
         if testeo % LOG_CADA ==0:      #lo añadimos al log general
             logfile4=open("daping.log","a+")
             logfile5=open("ultimo.log", "r")      
