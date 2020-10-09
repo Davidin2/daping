@@ -1,0 +1,70 @@
+Translated with www.DeepL.com/Translator (free version)
+
+Daping is a tool to control that we have ping to certain ranges of the Internet from the machine where it runs.
+
+To work the first time you need a nuevos_rangos.txt file where we indicate the ranges we want to have controlled.
+In the same way we can remove ranges if we load them in the file borrar_rangos.txt.
+Both adding and deleting ranges is done only when the program is started.
+
+When starting the program it will load the ranges from the file (in x.x.x.x/y format) and add them to the
+
+It will automatically save the ranges during each execution, using the nuevos_rangos.txt file only to load the new ones.
+
+From one execution to the next it saves the files dic_rangos.dat and dic_rangos_cont.dat where it stores the ranges that it has to look for, the ips that respond in that moment and the success and failure counters of the range ping.
+
+The following variables allow to modify the program behavior:
+
+MAXIMAS_IP_POR_RANGO=50 # How many IPs it saves from each range at most when it searches them
+MAXIMA_RED=21 # If the net is bigger than /21 we split the net into pieces /21
+LOG_CADA=1 #Each time we spit log into the daping.log file
+BUSCA_IP_CADA=1 #If a range does not have ips every few passes we search
+GUARDA_DIC_CADA=1 #Every time we save the range-to-disk dictionary
+MAIL_SI_FALLO=1 #Mail if a range x consecutive passes fail
+MAIL_SI_RECUPERA=1 #Mail when it recovers a range x consecutive passes
+BUSCAIPS_SI_MENOS=10 #Search for IPs again in range if you have less than x
+TRUNC_IPS=50 #Limit the ips of a range to x. If there are more, remove them
+
+Initial phase:
+When you start the program, it loads the ranges it had in the last run, then adds the new ranges to the file and looks for ips that respond to the ping. Then it proceeds to delete ranges as indicated in the file.
+
+Main phase:
+In this phase you go through the ranges one by one trying the ips that respond to the ping. If a range has less than "BUSCAIPS_SI_MENOS" it searches again for IPs. If the search finds more than "MAXIMAS_IP_POR_RANGO" it limits the ips to that number. If a range does not have ips that respond to the ping during "MAIL_SI_FALLO" passed, send a mail indicating that the range does not respond. When the range responds during past "MAIL_SI_RECUPERA", send an email indicating that it has been recovered.
+
+Once a day (at 00:00) send a status report by email.
+
+It also saves a log status for each past "LOG_CADA".
+
+Saves the IPs on disk every past "GUARDA_DIC_CADA".
+
+Example of output:
+------------------Start time 2020-10-08 01:02:02.764735 ------------------------
+Checking 5 ranges and 131075 ips. Ping to 115 ips.
+RANGEIP ALIVE [Tests OK CONSECUTIVE_OK FAIL CONSECUTIVE_FAIL]Last 24h
+ 2.152.0.0/16 49 [61, 54, 13, 7, 0] [61, 54, 13, 7, 0] 
+ 8.8.8.8/32 10 [61, 54, 13, 7, 0] [61, 54, 13, 7, 0] 
+ 80.224.0.0/16 46 [61, 53, 13, 8, 0] [61, 53, 13, 8, 0] 
+ 1.1.1.1/32 10 [61, 52, 13, 9, 0] [61, 52, 13, 9, 0] 
+**ALERT** 2.2.2.2/32 0 [61, 0, 0, 61, 61] [61, 0, 0, 61, 61] 
+------------------END TIME 2020-10-08 01:02:08.384776 ------------------------
+Test-->Number of tests in that range
+OK-->Number of tests in that range and who has responded
+CONSECUTIVE_OK-->Number of tests in that range and which have responded consecutively to the current time
+Fail-->Number of tests in that range and that have not responded
+CONSECUTIVE_FAIL-->Number of tests in that range that have not responded consecutively to the current time
+
+Two counters are taken, one global and one that is reset at 00:00.
+
+If we want to reset the counters, before the execution we will delete the file dic_rangos_cont.dat.
+If we want to delete the ranges, before the execution we will delete the file dic_rangos.dat and dic_rangos_cont.dat.
+
+In the daping.log file we will have the logs that are saved every past "LOG_CADA".
+
+In the file ultimo.txt the last extracted log is saved, ideal to hang it in a www server to be consulted
+
+When searching for ips the second and successive times, it is possible that duplicate ips are added to the existing ones. We allow this to happen, so that if there are only a few ips in a range, you don't have to look for them every time (because if there are not, you will never find them).
+
+Programmed by David.hernandezc@gmail.com
+https://github.com/Davidin2/dapings
+
+
+Translated with www.DeepL.com/Translator (free version)
