@@ -87,8 +87,8 @@ def carga_diccionario(nombre_fichero):
             dic_cargado=pickle.load(f)
             print ("---------------Loaded Dicc---------------")
             for rango in dic_cargado.keys(): #truncamos ips
-                if TRUNC_IPS<6:
-                    TRUNC_IPS=6 # como minimo debería ser 5 para no cargarnos el diccionario de contadores
+                if TRUNC_IPS<10:
+                    TRUNC_IPS=10 # como minimo debería ser 10 para no cargarnos el diccionario de contadores
                 if len(dic_cargado[rango])>TRUNC_IPS:
                     dic_cargado[rango]=dic_cargado[rango][0:TRUNC_IPS]
             #print(dic_cargado)
