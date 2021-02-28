@@ -77,7 +77,7 @@ def carga_rangos(fichero):
 def guarda_diccionario(dic,nombre_fichero):
     with open(nombre_fichero, "wb") as f:
         pickle.dump(dic, f)
-    print("---------------Dicc saved---------------")
+    #print("---------------Dicc saved---------------")
     #print (dic)
 
 def carga_diccionario(nombre_fichero):
@@ -99,7 +99,7 @@ def carga_diccionario(nombre_fichero):
 
 def busca_ips_en_rango(rango):
 
-    print ("---------------Searching IPs in range", rango)
+    print ("-----Searching IPs in range", rango,end='.',flush=True)
     network=ipaddress.ip_network(rango)
     mascara=network.prefixlen
     if mascara > MAXIMA_RED-1:
@@ -107,10 +107,10 @@ def busca_ips_en_rango(rango):
     else:  #Si el rango es <max_red seleccionamos uno de los max_red dentro de el
         lista_subredes=list(network.subnets(new_prefix=MAXIMA_RED)) #Spliteamos en max_red
         seleccionada=randrange(len(lista_subredes)) #Selecciona entre 0 y len-1
-        print ("---------------Select to ping", seleccionada, "of",len(lista_subredes), str(lista_subredes[seleccionada]))
+        print (" Select to ping", seleccionada, "of",len(lista_subredes), str(lista_subredes[seleccionada]),end='.',flush=True)
         result = subprocess.run(["fping", "-gaq", str(lista_subredes[seleccionada])], capture_output=True, text=True)
     lista_salida=result.stdout.splitlines() #result.stdout.splitlines es una lista de lineas con la salida del fping. Intentar limitar a 50 pings maximo, no tiene sentido tener mas.
-    print("---------------Range", rango, "processed, ", len(lista_salida), "ips answer ping")
+    print(" Range", rango, "processed, ", len(lista_salida), "ips answer ping")
     if len(lista_salida) > MAXIMAS_IP_POR_RANGO:
         lista_salida=lista_salida[0:MAXIMAS_IP_POR_RANGO]
     return (lista_salida)
@@ -193,7 +193,7 @@ def main():
         if rango not in dic_rangos: # Añadimos rango si no existe
             dic_rangos[rango]=busca_ips_en_rango(rango)  #Añadimos al diccionario las ips que responden       
             dic_rangos_contador[rango]=[0,0,0,0,0,0,0,0,0,0]
-            print(rango, "loaded ")
+            #print(rango, "loaded ")
         else:
             print(rango, "not loaded, already in tool")
         #Borramos rangos desde fichero
@@ -213,6 +213,30 @@ def main():
     testeo=0
     
     while True:
+        rangos=carga_rangos("cola_nuevos_rangos.txt")
+        borrar=open("cola_nuevos_rangos.txt", "w")
+        borrar.close()
+        #Buscar IPs en Rangos y rellenamos diccionario:
+        for rango in rangos:      #En cada rango de la lista
+            if rango not in dic_rangos: # Añadimos rango si no existe
+                dic_rangos[rango]=busca_ips_en_rango(rango)  #Añadimos al diccionario las ips que responden       
+                dic_rangos_contador[rango]=[0,0,0,0,0,0,0,0,0,0]
+                #print(rango, "loaded ")
+            else:
+                print(rango, "not loaded, already in tool")
+        #Borramos rangos desde fichero
+        rangos_a_borrar=carga_rangos("cola_borrar_rangos.txt")
+        borrar=open("cola_borrar_rangos.txt", "w")
+        borrar.close()
+        for rango in rangos_a_borrar:      #En cada rango de la lista
+            if rango in dic_rangos:
+                #lo borramos
+                del (dic_rangos[rango])
+                del (dic_rangos_contador[rango])
+                print(rango, "deleted ")
+            else:
+                print(rango, "not deleted, range not in tool")
+
         testeo+=1
         num_ips=0
         num_rangos=0
@@ -227,9 +251,9 @@ def main():
         print ("Checking", num_rangos, "ranges and",num_ips,"ips. Ping to",num_ips_ping,"""ips.<BR><BR><BR><TABLE BORDER="1">""", file=logfile)
         print ("<TR><TH>RANGE</TH><TH>IP ALIVE</TH><TH>[Tests OK CONSECUTIVE_OK FAIL CONSECUTIVE_FAIL]</TH><TH>Last 24h</TH></TR>", file=logfile)
         fecha_actual=date.today() #Para mandar un correo una vez solo cuando cambiamos de día
-        print("------------------------","Testing number", testeo, "-----------------------")
-        print ("Checking", num_rangos, "ranges and",num_ips,"ips. Ping to",num_ips_ping,"ips.")
-        print ("[Tests OK CONSECUTIVE_OK FAIL CONSECUTIVE_FAIL]")
+        print("-Testing number", testeo)
+        print ("-Checking", num_rangos, "ranges and",num_ips,"ips. Ping to",num_ips_ping,"ips.")
+        print ("-[Tests OK CONSECUTIVE_OK FAIL CONSECUTIVE_FAIL]")
         for rango in dic_rangos.keys():     # Por cada rango en el diccionario
             if len(dic_rangos[rango])>0:    # Si tiene al menos una ip que responde
                 comando= ["fping", "-aq"]
@@ -245,7 +269,7 @@ def main():
                         dic_rangos[rango].pop(posicion) # Borro la ip que no responde. No incremento la posicion pq al borrarla ese numero es la siguiente posicion
                 if len(dic_rangos[rango])<BUSCAIPS_SI_MENOS: # si tiene menos del limite 
                     if testeo % BUSCA_IP_CADA == 0: #Y además toca buscar
-                        print ("Range",rango ,"with only",len(dic_rangos[rango]),"ip, searching more ips)")
+                        print ("---Range",rango ,"with only",len(dic_rangos[rango]),"ip, searching more ips)")
                         dic_rangos[rango]+=busca_ips_en_rango(rango)
                         #podríamos quitar ips duplicadas, aunque puede ser interesante no hacerlo para que si no encuentra más no se quede siempre buscando
                 
@@ -258,7 +282,7 @@ def main():
                     dic_rangos_contador[rango][FALLIDOS_SEGUIDOS_24]=0
                     dic_rangos_contador[rango][TESTEOS]+=1
                     dic_rangos_contador[rango][TESTEOS_24]+=1
-                    print(rango, len(dic_rangos[rango]),"IPs answer ping.", dic_rangos_contador[rango][0:5],"Last 24h:", dic_rangos_contador[rango][5:10])
+                    print("-----", rango, len(dic_rangos[rango]),"IPs answer ping.", dic_rangos_contador[rango][0:5],"Last 24h:", dic_rangos_contador[rango][5:10])
                     print("<TR><TD>", rango,"</TD><TD>", len(dic_rangos[rango]),"</TD><TD>", dic_rangos_contador[rango][0:5],"</TD><TD>", dic_rangos_contador[rango][5:10], "</TD></TR>", file=logfile)
                 else:
                     dic_rangos_contador[rango][FALLIDOS]+=1
@@ -269,7 +293,7 @@ def main():
                     dic_rangos_contador[rango][EXITOSOS_SEGUIDOS_24]=0
                     dic_rangos_contador[rango][TESTEOS]+=1
                     dic_rangos_contador[rango][TESTEOS_24]+=1
-                    print ("**********ALERT", rango, "WITHOUT IP.", dic_rangos_contador[rango][0:5],"Last 24h:", dic_rangos_contador[rango][5:10])
+                    print ("*****ALERT", rango, "WITHOUT IP.", dic_rangos_contador[rango][0:5],"Last 24h:", dic_rangos_contador[rango][5:10])
                     print ("""<TR bgcolor= "red"><TD>**ALERT**""", rango, "</TD><TD>0</TD><TD>", dic_rangos_contador[rango][0:5],"</TD><TD>", dic_rangos_contador[rango][5:10],"</TD></TR>", file=logfile)
             else:
                 if testeo % BUSCA_IP_CADA == 0: #Testeamos rangos con 0
@@ -283,7 +307,7 @@ def main():
                     dic_rangos_contador[rango][FALLIDOS_SEGUIDOS_24]+=1
                     dic_rangos_contador[rango][EXITOSOS_SEGUIDOS_24]=0
                     dic_rangos_contador[rango][TESTEOS_24]+=1
-                    print ("**********ALERT", rango, "WITHOUT IP.", dic_rangos_contador[rango][0:5],"Last 24h:", dic_rangos_contador[rango][5:10])
+                    print ("*****ALERT", rango, "WITHOUT IP.", dic_rangos_contador[rango][0:5],"Last 24h:", dic_rangos_contador[rango][5:10])
                     print ("""<TR bgcolor= "red"><TD>**ALERT**""", rango, "</TD><TD>0</TD><TD>", dic_rangos_contador[rango][0:5],"</TD><TD>", dic_rangos_contador[rango][5:10],"</TD></TR>", file=logfile)
                 else: #Hemos encontrado despues de buscar
                     dic_rangos_contador[rango][EXITOSOS]+=1
@@ -294,7 +318,7 @@ def main():
                     dic_rangos_contador[rango][FALLIDOS_SEGUIDOS_24]=0
                     dic_rangos_contador[rango][TESTEOS]+=1
                     dic_rangos_contador[rango][TESTEOS_24]+=1
-                    print(rango, len(dic_rangos[rango]),"IPs answer ping.", dic_rangos_contador[rango][0:5],"Last 24h:", dic_rangos_contador[rango][5:10])
+                    print("-----", rango, len(dic_rangos[rango]),"IPs answer ping.", dic_rangos_contador[rango][0:5],"Last 24h:", dic_rangos_contador[rango][5:10])
                     print("<TR><TD>", rango,"</TD><TD>", len(dic_rangos[rango]),"</TD><TD>", dic_rangos_contador[rango][0:5],"</TD><TD>", dic_rangos_contador[rango][5:10], "</TD></TR>", file=logfile)
             if dic_rangos_contador[rango][FALLIDOS_SEGUIDOS] == MAIL_SI_FALLO:
                 texto="FAIL in range " + rango + ". [Tests TOTAL_OK CONSECUTIVE_OK FAIL CONSECUTIVE_FAIL] " + str(dic_rangos_contador[rango][0:5]) + " Last 24h: "+ str(dic_rangos_contador[rango][5:10])
