@@ -147,19 +147,25 @@ def carga_diccionario_sql():
     global TRUNC_IPS
     dic_rangos={}
     dic_rangos_contador={}
-    miConexion=sqlite3.connect("daping.bbdd")
-    miCursor=miConexion.cursor()
-    miCursor.execute("SELECT * from RANGOS")
-    leido=miCursor.fetchall()
-    for rango in leido:
-        dic_rangos_contador[rango[0]]=[rango[1],rango[2],rango[3],rango[4],rango[5],rango[6],rango[7],rango[8],rango[9],rango[10]]
-        consulta="SELECT * from IPS WHERE RANGO=" + '"' + str(rango[0]) + '"'
-        miCursor.execute(consulta)
-        leido2=miCursor.fetchall()
-        dic_rangos[rango[0]]=[]
-        for ip in leido2:
-            dic_rangos[rango[0]].append(ip[1])
-    miConexion.close()
+    
+    try:
+        miConexion=sqlite3.connect("daping.bbdd")
+        miCursor=miConexion.cursor()
+        miCursor.execute("SELECT * from RANGOS")
+        leido=miCursor.fetchall()
+        for rango in leido:
+            dic_rangos_contador[rango[0]]=[rango[1],rango[2],rango[3],rango[4],rango[5],rango[6],rango[7],rango[8],rango[9],rango[10]]
+            consulta="SELECT * from IPS WHERE RANGO=" + '"' + str(rango[0]) + '"'
+            miCursor.execute(consulta)
+            leido2=miCursor.fetchall()
+            dic_rangos[rango[0]]=[]
+            for ip in leido2:
+                dic_rangos[rango[0]].append(ip[1])
+        miConexion.close()
+    except sqlite3.OperationalError:
+        print("¿No hay BBDD?")
+
+
     for rango in dic_rangos.keys(): #truncamos ips
         if len(dic_rangos[rango])>TRUNC_IPS:
             dic_rangos[rango]=dic_rangos[rango][0:TRUNC_IPS]
