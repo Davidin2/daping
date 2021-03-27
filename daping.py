@@ -11,6 +11,7 @@ from datetime import datetime
 from datetime import date
 import smtplib
 import configparser
+import sqlite3
 
 TESTEOS=0               #posicion en a lista en dic_rangos_contador
 EXITOSOS=1              #posicion en a lista en dic_rangos_contador
@@ -79,6 +80,90 @@ def guarda_diccionario(dic,nombre_fichero):
         pickle.dump(dic, f)
     #print("---------------Dicc saved---------------")
     #print (dic)
+
+def guarda_diccionario_sql(dic_rangos,dic_rangos_contador):
+    miConexion=sqlite3.connect("daping.bbdd")
+    miCursor=miConexion.cursor()
+    
+    try:
+        miCursor.execute("""DROP TABLE RANGOS""")
+    except sqlite3.OperationalError:
+        print("¿No existe la tabla RANGOS?")
+
+    try:
+        miCursor.execute("""DROP TABLE IPS""")
+    except sqlite3.OperationalError:
+        print("¿No existe la tabla IPS?")
+
+    try:
+        miCursor.execute("""
+        CREATE TABLE RANGOS (
+        RANGO VARCHAR (20),
+        TEST INTEGER,
+        TEST_EXITOSOS INTEGER,
+        TEST_EXITOSOS_SEGUIDOS INTEGER,
+        FALLIDOS INTEGER,
+        FALLIDOS_SEGUIDOS INTEGER,
+        TEST_24 INTEGER,
+        TEST_EXITOSOS_24 INTEGER,
+        TEST_EXITOSOS_SEGUIDOS_24 INTEGER,
+        FALLIDOS_24 INTEGER,
+        FALLIDOS_SEGUIDOS_24 INTEGER)
+        """)
+    except sqlite3.OperationalError:
+        print("¿Tabla RANGOS ya creada?")
+
+    try:
+        miCursor.execute("""
+        CREATE TABLE IPS (
+        RANGO VARCHAR (20),
+        IP VARCHAR (20))
+        """)
+    except sqlite3.OperationalError:
+        print("¿Tabla IPs ya creada?")
+
+    for rango in dic_rangos:
+        tupla=(rango,
+        dic_rangos_contador[rango][0],
+        dic_rangos_contador[rango][1],
+        dic_rangos_contador[rango][2],
+        dic_rangos_contador[rango][3],
+        dic_rangos_contador[rango][4],
+        dic_rangos_contador[rango][5],
+        dic_rangos_contador[rango][6],
+        dic_rangos_contador[rango][7],
+        dic_rangos_contador[rango][8],
+        dic_rangos_contador[rango][9],
+        )
+        miCursor.execute("INSERT INTO RANGOS VALUES(?,?,?,?,?,?,?,?,?,?,?)",tupla)
+        for IP in dic_rangos[rango]:
+            tupla=(rango,IP)
+            miCursor.execute("INSERT INTO IPS VALUES(?,?)",tupla)
+
+    miConexion.commit()
+    miConexion.close()
+
+def carga_diccionario_sql():
+    global TRUNC_IPS
+    dic_rangos={}
+    dic_rangos_contador={}
+    miConexion=sqlite3.connect("daping.bbdd")
+    miCursor=miConexion.cursor()
+    miCursor.execute("SELECT * from RANGOS")
+    leido=miCursor.fetchall()
+    for rango in leido:
+        dic_rangos_contador[rango[0]]=[rango[1],rango[2],rango[3],rango[4],rango[5],rango[6],rango[7],rango[8],rango[9],rango[10]]
+        consulta="SELECT * from IPS WHERE RANGO=" + '"' + str(rango[0]) + '"'
+        miCursor.execute(consulta)
+        leido2=miCursor.fetchall()
+        dic_rangos[rango[0]]=[]
+        for ip in leido2:
+            dic_rangos[rango[0]].append(ip[1])
+    miConexion.close()
+    for rango in dic_rangos.keys(): #truncamos ips
+        if len(dic_rangos[rango])>TRUNC_IPS:
+            dic_rangos[rango]=dic_rangos[rango][0:TRUNC_IPS]
+    return (dic_rangos,dic_rangos_contador)
 
 def carga_diccionario(nombre_fichero):
     global TRUNC_IPS
@@ -181,8 +266,9 @@ def main():
     fecha_inicio = date.today()
     dic_rangos_contador={}
     dic_rangos={} #Diccionario con rango (key) y lista de ips que responden (value)
-    dic_rangos=carga_diccionario("dic_rangos.dat")
-    dic_rangos_contador=carga_diccionario("dic_rangos_cont.dat")
+    #dic_rangos=carga_diccionario("dic_rangos.dat")
+    #dic_rangos_contador=carga_diccionario("dic_rangos_cont.dat")
+    (dic_rangos,dic_rangos_contador)=carga_diccionario_sql()
     if dic_rangos_contador =={}: # si no hay fichero de contador lo inicializamos
         for rango in dic_rangos.keys():
             dic_rangos_contador[rango]=[0,0,0,0,0,0,0,0,0,0]  # testeos, exitosos, fallidos, ver constantes
@@ -361,9 +447,10 @@ def main():
             logfile4.close()
             logfile5.close()
         if testeo % GUARDA_DIC_CADA == 0: #Guardamos diccionario
-            guarda_diccionario(dic_rangos,"dic_rangos.dat")
-            guarda_diccionario(dic_rangos_contador,"dic_rangos_cont.dat")
-        
+            #guarda_diccionario(dic_rangos,"dic_rangos.dat")
+            #guarda_diccionario(dic_rangos_contador,"dic_rangos_cont.dat")
+            guarda_diccionario_sql(dic_rangos,dic_rangos_contador)
+
 if __name__ == '__main__':
     main()
 
