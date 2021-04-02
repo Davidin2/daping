@@ -23,7 +23,7 @@ TESTEOS_24=6            #posicion en la lista en dic_rangos_contador
 EXITOSOS_24=7           #posicion en la lista en dic_rangos_contador
 EXITOSOS_SEGUIDOS_24=8  #posicion en la lista en dic_rangos_contador
 FALLIDOS_24=9           #posicion en la lista en dic_rangos_contador
-FALLIDOS_SEGUIDOS_24=10  #posicion en la lista en dic_rangos_contador
+FALLIDOS_SEGUIDOS_24=10 #posicion en la lista en dic_rangos_contador
 BUSQUEDAS_24=11         #posicion en la lista en dic_rangos_contador
 LOG_CADA=1              #Cada cuando escupimos log al fichero log.txt
 BUSCA_IP_CADA=1         #Si un rango no tiene ips cada cuanto buscamos
@@ -345,7 +345,7 @@ def main():
             num_rangos+=1
             num_ips_ping+=len(dic_rangos[rango])
         logfile=open("ultimo.log", "w") 
-        print ("------------------Start time",datetime.now(),"------------------------<BR>", file=logfile)
+        print ("------------------Start time",datetime.now().replace(microsecond=0),"------------------------<BR>", file=logfile)
         print ("Checking", num_rangos, "ranges and",num_ips,"ips. Ping to",num_ips_ping,"""ips.<BR><BR><BR><TABLE BORDER="1">""", file=logfile)
         print ("<TR><TH>RANGE</TH><TH>IP ALIVE</TH><TH>[Tests OK CONSECUTIVE_OK FAIL CONSECUTIVE_FAIL SEARCHES]</TH><TH>Last 24h</TH></TR>", file=logfile)
         fecha_actual=date.today() #Para mandar un correo una vez solo cuando cambiamos de día
@@ -431,7 +431,7 @@ def main():
                     texto="Recover range " + rango + ". [Tests TOTAL_OK CONSECUTIVE_OK FAIL CONSECUTIVE_FAIL SEARCHES] " + str(dic_rangos_contador[rango][0:6])+" Last 24h: "+ str(dic_rangos_contador[rango][6:12])
                     print (texto)
                     envia_correo(texto, texto)
-        print ("</TABLE>------------------END TIME",datetime.now(),"------------------------<BR><BR><BR><BR>", file=logfile)
+        print ("</TABLE>------------------END TIME",datetime.now().replace(microsecond=0),"------------------------<BR><BR><BR><BR>", file=logfile)
         logfile.close()
         logfile2=open("ultimo.log", "r")
         logfile3=open("ultimo.txt", "w") # lo copiamos a .txt pq el .log al estar abierto siempre no tiene toda la info
@@ -473,6 +473,9 @@ if __name__ == '__main__':
 
 #Mejoras a futuro: 
     #1 proceso hace pings buscando ips mientras otro testea las existentes en paralelo
-
+    #Pasar parametro al arrancar que borre contadores
+    #Parte visual más bonita
+    #¿Actualizar la BBDD cada rango en vez de cada pasada?
+    #¿Actualizar la BBDD en lugar de borrar y crearla cada vez?
 
 
