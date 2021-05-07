@@ -12,6 +12,7 @@ from datetime import date
 import smtplib
 import configparser
 import sqlite3
+import sys
 
 TESTEOS=0               #posicion en la lista en dic_rangos_contador
 EXITOSOS=1              #posicion en la lista en dic_rangos_contador
@@ -112,7 +113,8 @@ def guarda_diccionario_sql(dic_rangos,dic_rangos_contador):
         FALLIDOS_24 INTEGER,
         FALLIDOS_SEGUIDOS_24 INTEGER,
         BUSQUEDAS INTEGER,
-        BUSQUEDAS_24 INTEGER)
+        BUSQUEDAS_24 INTEGER,
+        DESCRIPCION VARCHAR (100))
         """)
     except sqlite3.OperationalError:
         print("¿Tabla RANGOS ya creada?")
@@ -139,9 +141,10 @@ def guarda_diccionario_sql(dic_rangos,dic_rangos_contador):
         dic_rangos_contador[rango][8],
         dic_rangos_contador[rango][9],
         dic_rangos_contador[rango][10],
-        dic_rangos_contador[rango][11]
+        dic_rangos_contador[rango][11],
+        ""
         )
-        miCursor.execute("INSERT INTO RANGOS VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)",tupla)
+        miCursor.execute("INSERT INTO RANGOS VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)",tupla)
         for IP in dic_rangos[rango]:
             tupla=(rango,IP)
             miCursor.execute("INSERT INTO IPS VALUES(?,?)",tupla)
@@ -153,7 +156,8 @@ def carga_diccionario_sql():
     global TRUNC_IPS
     dic_rangos={}
     dic_rangos_contador={}
-    
+    dic_rangos_descripcion={}
+
     try:
         miConexion=sqlite3.connect("daping.bbdd")
         miCursor=miConexion.cursor()
@@ -175,7 +179,7 @@ def carga_diccionario_sql():
     for rango in dic_rangos.keys(): #truncamos ips
         if len(dic_rangos[rango])>TRUNC_IPS:
             dic_rangos[rango]=dic_rangos[rango][0:TRUNC_IPS]
-    return (dic_rangos,dic_rangos_contador)
+    return (dic_rangos,dic_rangos_contador,dic_rangos_descripcion)
 
 def carga_diccionario(nombre_fichero):
     global TRUNC_IPS
@@ -278,9 +282,12 @@ def main():
     fecha_inicio = date.today()
     dic_rangos_contador={}
     dic_rangos={} #Diccionario con rango (key) y lista de ips que responden (value)
+    dic_rangos_descripcion={} #Diccionario con rango (key) y valor descripcion
     #dic_rangos=carga_diccionario("dic_rangos.dat")
     #dic_rangos_contador=carga_diccionario("dic_rangos_cont.dat")
-    (dic_rangos,dic_rangos_contador)=carga_diccionario_sql()
+    (dic_rangos,dic_rangos_contador,dic_rangos_descripcion)=carga_diccionario_sql()
+    if "-R" in sys.argv:
+         dic_rangos_contador={} #Borramos los contadores si llega el parametro -R
     if dic_rangos_contador =={}: # si no hay fichero de contador lo inicializamos
         for rango in dic_rangos.keys():
             dic_rangos_contador[rango]=[0,0,0,0,0,0,0,0,0,0,0,0]  # testeos, exitosos, fallidos, ver constantes
@@ -472,10 +479,11 @@ if __name__ == '__main__':
     main()
 
 #Mejoras a futuro: 
-    #1 proceso hace pings buscando ips mientras otro testea las existentes en paralelo
-    #Pasar parametro al arrancar que borre contadores
+    #Pasar parametro al arrancar que borre contadores. Listo, es -R
+    #Añadir descripción a los rangos
     #Parte visual más bonita
     #¿Actualizar la BBDD cada rango en vez de cada pasada?
     #¿Actualizar la BBDD en lugar de borrar y crearla cada vez?
+    #Lanzar un thread para buscar ips y no parar buscando?
 
 
