@@ -84,7 +84,7 @@ def guarda_diccionario(dic,nombre_fichero):
     #print("---------------Dicc saved---------------")
     #print (dic)
 
-def guarda_diccionario_sql(dic_rangos,dic_rangos_contador):
+def guarda_diccionario_sql(dic_rangos,dic_rangos_contador,dic_rangos_descripcion):
     miConexion=sqlite3.connect("daping.bbdd")
     miCursor=miConexion.cursor()
     
@@ -129,6 +129,9 @@ def guarda_diccionario_sql(dic_rangos,dic_rangos_contador):
         print("¿Tabla IPs ya creada?")
 
     for rango in dic_rangos:
+        desc=""
+        if rango in dic_rangos_descripcion:
+            desc=dic_rangos_descripcion[rango]
         tupla=(rango,
         dic_rangos_contador[rango][0],
         dic_rangos_contador[rango][1],
@@ -142,7 +145,7 @@ def guarda_diccionario_sql(dic_rangos,dic_rangos_contador):
         dic_rangos_contador[rango][9],
         dic_rangos_contador[rango][10],
         dic_rangos_contador[rango][11],
-        ""
+        desc
         )
         miCursor.execute("INSERT INTO RANGOS VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)",tupla)
         for IP in dic_rangos[rango]:
@@ -165,6 +168,7 @@ def carga_diccionario_sql():
         leido=miCursor.fetchall()
         for rango in leido:
             dic_rangos_contador[rango[0]]=[rango[1],rango[2],rango[3],rango[4],rango[5],rango[6],rango[7],rango[8],rango[9],rango[10],rango[11],rango[12]]
+            dic_rangos_descripcion[rango[0]]=rango[13]
             consulta="SELECT * from IPS WHERE RANGO=" + '"' + str(rango[0]) + '"'
             miCursor.execute(consulta)
             leido2=miCursor.fetchall()
@@ -316,7 +320,20 @@ def main():
     #print(dic_rangos)
     # Ver si las IPs de un diccionario de rangos siguen respondiendo. Si una IP no responde la elimina de la lista
     testeo=0
-    
+
+    if "-D" in sys.argv:   #cargamos descripciones de los rangos existentes
+        try:
+            with open("desc.txt", "r") as f:
+                for linea in f:
+                    partida=linea.split(",",1)  #Separado por ","
+                    if partida[0]in dic_rangos:
+                        partida[1]=partida[1].replace("\n","")
+                        partida[1]=partida[1].replace("\r","")
+                        dic_rangos_descripcion[partida[0]]=partida[1]
+
+        except (OSError, IOError) as e:
+            print ("---------------No existe fichero de descripciones---------------")
+
     while True:
         rangos=carga_rangos("cola_nuevos_rangos.txt")
         borrar=open("cola_nuevos_rangos.txt", "w")
@@ -354,7 +371,7 @@ def main():
         logfile=open("ultimo.log", "w") 
         print ("------------------Start time",datetime.now().replace(microsecond=0),"------------------------<BR>", file=logfile)
         print ("Checking", num_rangos, "ranges and",num_ips,"ips. Ping to",num_ips_ping,"""ips.<BR><BR><BR><TABLE BORDER="1">""", file=logfile)
-        print ("<TR><TH>RANGE</TH><TH>IP ALIVE</TH><TH>[Tests OK CONSECUTIVE_OK FAIL CONSECUTIVE_FAIL SEARCHES]</TH><TH>Last 24h</TH></TR>", file=logfile)
+        print ("<TR><TH>RANGE</TH><TH>Description</TH><th>IP ALIVE</th><TH>[Tests OK CONSECUTIVE_OK FAIL CONSECUTIVE_FAIL SEARCHES]</TH><TH>Last 24h</TH></TR>", file=logfile)
         fecha_actual=date.today() #Para mandar un correo una vez solo cuando cambiamos de día
         print("-Testing number", testeo)
         print ("-Checking", num_rangos, "ranges and",num_ips,"ips. Ping to",num_ips_ping,"ips.")
@@ -374,7 +391,7 @@ def main():
                         dic_rangos[rango].pop(posicion) # Borro la ip que no responde. No incremento la posicion pq al borrarla ese numero es la siguiente posicion
                 if len(dic_rangos[rango])<BUSCAIPS_SI_MENOS: # si tiene menos del limite 
                     if testeo % BUSCA_IP_CADA == 0: #Y además toca buscar
-                        print ("---Range",rango ,"with only",len(dic_rangos[rango]),"ip, searching more ips)")
+                        print ("---Range",rango," ",dic_rangos_descripcion[rango] ,"with only",len(dic_rangos[rango]),"ip, searching more ips)")
                         dic_rangos[rango]+=busca_ips_en_rango(rango)
                         dic_rangos_contador[rango][BUSQUEDAS]+=1
                         dic_rangos_contador[rango][BUSQUEDAS_24]+=1
@@ -389,8 +406,8 @@ def main():
                     dic_rangos_contador[rango][FALLIDOS_SEGUIDOS_24]=0
                     dic_rangos_contador[rango][TESTEOS]+=1
                     dic_rangos_contador[rango][TESTEOS_24]+=1
-                    print("-----", rango, len(dic_rangos[rango]),"IPs answer ping.", dic_rangos_contador[rango][0:6],"Last 24h:", dic_rangos_contador[rango][6:12])
-                    print("<TR><TD>", rango,"</TD><TD>", len(dic_rangos[rango]),"</TD><TD>", dic_rangos_contador[rango][0:6],"</TD><TD>", dic_rangos_contador[rango][6:12], "</TD></TR>", file=logfile)
+                    print("-----", rango," ",dic_rangos_descripcion[rango], len(dic_rangos[rango]),"IPs answer ping.", dic_rangos_contador[rango][0:6],"Last 24h:", dic_rangos_contador[rango][6:12])
+                    print("<TR><TD>", rango,"</TD><td>",dic_rangos_descripcion[rango],"</td><TD>", len(dic_rangos[rango]),"</TD><TD>", dic_rangos_contador[rango][0:6],"</TD><TD>", dic_rangos_contador[rango][6:12], "</TD></TR>", file=logfile)
                 else:
                     dic_rangos_contador[rango][FALLIDOS]+=1
                     dic_rangos_contador[rango][FALLIDOS_SEGUIDOS]+=1
@@ -400,8 +417,8 @@ def main():
                     dic_rangos_contador[rango][EXITOSOS_SEGUIDOS_24]=0
                     dic_rangos_contador[rango][TESTEOS]+=1
                     dic_rangos_contador[rango][TESTEOS_24]+=1
-                    print ("*****ALERT", rango, "WITHOUT IP.", dic_rangos_contador[rango][0:6],"Last 24h:", dic_rangos_contador[rango][6:12])
-                    print ("""<TR bgcolor= "red"><TD>**ALERT**""", rango, "</TD><TD>0</TD><TD>", dic_rangos_contador[rango][0:6],"</TD><TD>", dic_rangos_contador[rango][6:12],"</TD></TR>", file=logfile)
+                    print ("*****ALERT", rango," ",dic_rangos_descripcion[rango], " WITHOUT IP.", dic_rangos_contador[rango][0:6],"Last 24h:", dic_rangos_contador[rango][6:12])
+                    print ("""<TR bgcolor= "red"><TD>**ALERT**""", rango, "</TD><td>",dic_rangos_descripcion[rango],"</td><TD>0</TD><TD>", dic_rangos_contador[rango][0:6],"</TD><TD>", dic_rangos_contador[rango][6:12],"</TD></TR>", file=logfile)
             else:
                 if testeo % BUSCA_IP_CADA == 0: #Testeamos rangos con 0
                     dic_rangos[rango]=busca_ips_en_rango(rango)
@@ -416,8 +433,8 @@ def main():
                     dic_rangos_contador[rango][FALLIDOS_SEGUIDOS_24]+=1
                     dic_rangos_contador[rango][EXITOSOS_SEGUIDOS_24]=0
                     dic_rangos_contador[rango][TESTEOS_24]+=1
-                    print ("*****ALERT", rango, "WITHOUT IP.", dic_rangos_contador[rango][0:6],"Last 24h:", dic_rangos_contador[rango][6:12])
-                    print ("""<TR bgcolor= "red"><TD>**ALERT**""", rango, "</TD><TD>0</TD><TD>", dic_rangos_contador[rango][0:6],"</TD><TD>", dic_rangos_contador[rango][6:12],"</TD></TR>", file=logfile)
+                    print ("*****ALERT", rango," ",dic_rangos_descripcion[rango], "WITHOUT IP.", dic_rangos_contador[rango][0:6],"Last 24h:", dic_rangos_contador[rango][6:12])
+                    print ("""<TR bgcolor= "red"><TD>**ALERT**""", rango, "</TD><td>",dic_rangos_descripcion[rango],"</td><TD>0</TD><TD>", dic_rangos_contador[rango][0:6],"</TD><TD>", dic_rangos_contador[rango][6:12],"</TD></TR>", file=logfile)
                 else: #Hemos encontrado despues de buscar
                     dic_rangos_contador[rango][EXITOSOS]+=1
                     dic_rangos_contador[rango][EXITOSOS_SEGUIDOS]+=1
@@ -427,15 +444,15 @@ def main():
                     dic_rangos_contador[rango][FALLIDOS_SEGUIDOS_24]=0
                     dic_rangos_contador[rango][TESTEOS]+=1
                     dic_rangos_contador[rango][TESTEOS_24]+=1
-                    print("-----", rango, len(dic_rangos[rango]),"IPs answer ping.", dic_rangos_contador[rango][0:6],"Last 24h:", dic_rangos_contador[rango][6:12])
-                    print("<TR><TD>", rango,"</TD><TD>", len(dic_rangos[rango]),"</TD><TD>", dic_rangos_contador[rango][0:6],"</TD><TD>", dic_rangos_contador[rango][6:12], "</TD></TR>", file=logfile)
+                    print("-----", rango," ",dic_rangos_descripcion[rango]," ", len(dic_rangos[rango]),"IPs answer ping.", dic_rangos_contador[rango][0:6],"Last 24h:", dic_rangos_contador[rango][6:12])
+                    print("<TR><TD>", rango,"</TD><td>",dic_rangos_descripcion[rango],"</td><TD>", len(dic_rangos[rango]),"</TD><TD>", dic_rangos_contador[rango][0:6],"</TD><TD>", dic_rangos_contador[rango][6:12], "</TD></TR>", file=logfile)
             if dic_rangos_contador[rango][FALLIDOS_SEGUIDOS] == MAIL_SI_FALLO:
-                texto="FAIL in range " + rango + ". [Tests TOTAL_OK CONSECUTIVE_OK FAIL CONSECUTIVE_FAIL SEARCHES] " + str(dic_rangos_contador[rango][0:6]) + " Last 24h: "+ str(dic_rangos_contador[rango][6:12])
+                texto="FAIL in range " + rango +" "+dic_rangos_descripcion[rango] + ". [Tests TOTAL_OK CONSECUTIVE_OK FAIL CONSECUTIVE_FAIL SEARCHES] " + str(dic_rangos_contador[rango][0:6]) + " Last 24h: "+ str(dic_rangos_contador[rango][6:12])
                 print (texto)
                 envia_correo(texto, texto)
             if dic_rangos_contador[rango][EXITOSOS_SEGUIDOS] == MAIL_SI_RECUPERA: 
                 if dic_rangos_contador[rango][EXITOSOS_SEGUIDOS] != dic_rangos_contador[rango][TESTEOS]: # controlamos que no sea al arranque
-                    texto="Recover range " + rango + ". [Tests TOTAL_OK CONSECUTIVE_OK FAIL CONSECUTIVE_FAIL SEARCHES] " + str(dic_rangos_contador[rango][0:6])+" Last 24h: "+ str(dic_rangos_contador[rango][6:12])
+                    texto="Recover range " + rango +" "+dic_rangos_descripcion[rango] + ". [Tests TOTAL_OK CONSECUTIVE_OK FAIL CONSECUTIVE_FAIL SEARCHES] " + str(dic_rangos_contador[rango][0:6])+" Last 24h: "+ str(dic_rangos_contador[rango][6:12])
                     print (texto)
                     envia_correo(texto, texto)
         print ("</TABLE>------------------END TIME",datetime.now().replace(microsecond=0),"------------------------<BR><BR><BR><BR>", file=logfile)
@@ -473,7 +490,7 @@ def main():
         if testeo % GUARDA_DIC_CADA == 0: #Guardamos diccionario
             #guarda_diccionario(dic_rangos,"dic_rangos.dat")
             #guarda_diccionario(dic_rangos_contador,"dic_rangos_cont.dat")
-            guarda_diccionario_sql(dic_rangos,dic_rangos_contador)
+            guarda_diccionario_sql(dic_rangos,dic_rangos_contador,dic_rangos_descripcion)
 
 if __name__ == '__main__':
     main()
