@@ -302,6 +302,7 @@ def main():
         if rango not in dic_rangos: # Añadimos rango si no existe
             dic_rangos[rango]=busca_ips_en_rango(rango)  #Añadimos al diccionario las ips que responden       
             dic_rangos_contador[rango]=[0,0,0,0,0,1,0,0,0,0,0,1]
+            dic_rangos_descripcion[rango]=""
             #print(rango, "loaded ")
         else:
             print(rango, "not loaded, already in tool")
@@ -312,6 +313,7 @@ def main():
             #lo borramos
             del (dic_rangos[rango])
             del (dic_rangos_contador[rango])
+            del( dic_rangos_descripcion[rango])
             print(rango, "deleted ")
         else:
             print(rango, "not deleted, range not in tool")
@@ -343,6 +345,7 @@ def main():
             if rango not in dic_rangos: # Añadimos rango si no existe
                 dic_rangos[rango]=busca_ips_en_rango(rango)  #Añadimos al diccionario las ips que responden       
                 dic_rangos_contador[rango]=[0,0,0,0,0,1,0,0,0,0,0,1]
+                dic_rangos_descripcion[rango]=""
                 #print(rango, "loaded ")
             else:
                 print(rango, "not loaded, already in tool")
@@ -355,6 +358,7 @@ def main():
                 #lo borramos
                 del (dic_rangos[rango])
                 del (dic_rangos_contador[rango])
+                del (dic_rangos_descripcion[rango])
                 print(rango, "deleted ")
             else:
                 print(rango, "not deleted, range not in tool")
