@@ -50,7 +50,7 @@ Content-type: text/html
 Subject: %s
     
 %s
-""" % (remitente, destinatario, asunto, mensaje)
+""" % (remitente, ",".join(destinatario), asunto, mensaje)
     try:
         smtp = smtplib.SMTP('localhost')
         smtp.sendmail(remitente, MAILS, email)
@@ -275,7 +275,7 @@ def print_config():
     config=config + "MAX prefix network to search IP: " + str(MAXIMA_RED) + "\r\n<BR>"
     config=config + "Lmit IPs in range to: " + str(TRUNC_IPS) + "\r\n<BR>"
     config=config + "ID: " + ID + "\r\n<BR>"
-    config=config + "EMAILS: " + ",".join(MAILS) + "\r\n<BR>"
+    config=config + "EMAILS: " + str(len(MAILS)) + "\r\n<BR>"
     return (config)
 
 def limpia_html(value):
